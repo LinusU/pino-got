@@ -1,29 +1,66 @@
-function loggerFactory (pino) {
-  return async function pinoGotLogger (options, next) {
-    pino.debug({ method: options.method, headers: options.headers, body: options.json || options.form }, `Making ${options.method} request to ${String(options.url)}`)
+// Fired request index (used to generate the request identifier).
+let index = 0
 
-    try {
-      const start = Date.now()
-      const result = await next(options)
+// Symbol used to save a unique identifier inside request's context.
+const symId = Symbol.for('pino-got')
 
-      try {
-        const response = result
-        const duration = `${Date.now() - start}ms`
-        pino.debug({ statusCode: response.statusCode, headers: response.headers, body: response.body, duration }, `Got successful response in ${duration}`)
-      } catch {}
+function pinoGotFactory (pino, factoryOptions = {}) {
+  const level = factoryOptions.level || 'info'
+  if (!Object.keys(pino.levels.values).includes(level)) {
+    throw new Error(`Log level "${level}" is not available`)
+  }
 
-      return result
-    } catch (error) {
-      const statusCode = (error.response && error.response.statusCode) || undefined
-      const headers = (error.response && error.response.headers) || undefined
-      const body = (error.response && error.response.body) || undefined
-      const stack = error.stack || String(error)
+  const log = pino[level].bind(pino)
 
-      pino.error({ statusCode, headers, body, stack }, `${options.method} request to ${String(options.url)} failed`)
-
-      throw error
+  return {
+    hooks: {
+      init: [
+        options => {
+          options.context = {
+            ...options.context,
+            [symId]: `got-${(++index).toString(36)}`
+          }
+        }
+      ],
+      beforeRequest: [
+        options => {
+          log(
+            {
+              reqId: options.context[symId],
+              method: options.method,
+              url: options.url.href,
+              headers: factoryOptions.logRequestHeaders
+                ? options.headers
+                : undefined,
+              body: factoryOptions.logRequestBody
+                ? options.json || options.form
+                : undefined
+            },
+            'outcoming request'
+          )
+        }
+      ],
+      afterResponse: [
+        response => {
+          log(
+            {
+              reqId: response.request.options.context[symId],
+              statusCode: response.statusCode,
+              responseTime: Date.now() - response.timings.start,
+              headers: factoryOptions.logResponseHeaders
+                ? response.headers
+                : undefined,
+              body: factoryOptions.logResponseBody
+                ? response.body
+                : undefined
+            },
+            'request completed'
+          )
+          return response
+        }
+      ]
     }
   }
 }
 
-module.exports = loggerFactory
+module.exports = pinoGotFactory

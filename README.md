@@ -16,8 +16,15 @@ const pino = require('pino')
 const pinoGot = require('pino-got')
 
 const logger = pino({ level: 'debug' })
-const gotLogger = pinoGot(logger)
-const client = got.extend({ handlers: [gotLogger] })
+
+const client = got.extend(
+  pinoGot(logger, {
+    level: 'debug',
+    logRequestHeaders: true,
+    logResponseHeaders: true,
+    logResponseBody: true
+  })
+)
 
 client.get('https://example.com/')
 ```
@@ -25,14 +32,18 @@ client.get('https://example.com/')
 Example output with [pino-pretty](https://github.com/pinojs/pino-pretty):
 
 ```text
-[1603000000227] DEBUG (88800 on Linus-MacBook-Pro.local): Making GET request to https://example.com/
+[1603000000227] DEBUG (88800 on Linus-MacBook-Pro.local): outcoming request
+    reqId: "got-1"
     method: "GET"
+    url: "https://example.com/"
     headers: {
       "user-agent": "got (https://github.com/sindresorhus/got)"
     }
 
-[1603000000694] DEBUG (88800 on Linus-MacBook-Pro.local): Got successful response in 467ms
+[1603000000694] DEBUG (88800 on Linus-MacBook-Pro.local): request completed
+    reqId: "got-1"
     statusCode: 200
+    responseTime: 155
     headers: {
       "content-encoding": "gzip",
       "age": "451741",
@@ -49,5 +60,4 @@ Example output with [pino-pretty](https://github.com/pinojs/pino-pretty):
       "connection": "close"
     }
     body: "<!doctype html>..."
-    duration: "467ms"
 ```

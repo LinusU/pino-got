@@ -2,17 +2,18 @@
   "name": "pino-got",
   "version": "1.0.0",
   "license": "MIT",
-  "repository": "LinusU/pino-got",
+  "type": "commonjs",
+  "repository": "git@github.com:LinusU/pino-got.git",
   "scripts": {
     "test": "standard"
   },
   "peerDependencies": {
-    "got": "^11.0.0",
-    "pino": "^6.0.0"
+    "got": "^11.0.0 - ^12.0.0",
+    "pino": "^6.0.0 - ^7.0.0"
   },
   "devDependencies": {
-    "got": "^11.8.0",
-    "pino": "^6.7.0",
-    "standard": "^14.3.4"
+    "got": "^11.8.3",
+    "pino": "^7.6.5",
+    "standard": "^16.0.4"
   }
 }
