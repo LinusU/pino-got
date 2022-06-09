@@ -5,6 +5,4 @@ declare interface PinoLike {
   error: (obj: object, msg?: string) => void
 }
 
-declare function loggerFactory (pino: PinoLike): HandlerFunction
-
-export = loggerFactory
+export default function loggerFactory (pino: PinoLike): HandlerFunction

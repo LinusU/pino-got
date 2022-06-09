@@ -8,12 +8,19 @@ A [Got](https://github.com/sindresorhus/got) handler that logs all requests to a
 npm install --save pino-got
 ```
 
+## Compatibility
+
+`pino-got` | `got`  | `pino`
+---------- | ------ | ------
+**`2.x`**  | `12.x` | `8.x`
+**`1.x`**  | `11.x` | `6.x`
+
 ## Usage
 
 ```js
-const got = require('got')
-const pino = require('pino')
-const pinoGot = require('pino-got')
+import got from 'got'
+import pino from 'pino'
+import pinoGot from 'pino-got'
 
 const logger = pino({ level: 'debug' })
 const gotLogger = pinoGot(logger)

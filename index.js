@@ -1,6 +1,6 @@
-function loggerFactory (pino) {
+export default function loggerFactory (pino) {
   return async function pinoGotLogger (options, next) {
-    pino.debug({ method: options.method, headers: options.headers, body: options.json || options.form }, `Making ${options.method} request to ${String(options.url)}`)
+    pino.debug({ method: options.method, headers: options.headers, body: options.json ?? options.form ?? undefined }, `Making ${options.method} request to ${options.url.href}`)
 
     try {
       const start = Date.now()
@@ -14,16 +14,14 @@ function loggerFactory (pino) {
 
       return result
     } catch (error) {
-      const statusCode = (error.response && error.response.statusCode) || undefined
-      const headers = (error.response && error.response.headers) || undefined
-      const body = (error.response && error.response.body) || undefined
-      const stack = error.stack || String(error)
+      const statusCode = error.response?.statusCode ?? undefined
+      const headers = error.response?.headers ?? undefined
+      const body = error.response?.body ?? undefined
+      const stack = error.stack ?? String(error)
 
-      pino.error({ statusCode, headers, body, stack }, `${options.method} request to ${String(options.url)} failed`)
+      pino.error({ statusCode, headers, body, stack }, `${options.method} request to ${options.url.href} failed`)
 
       throw error
     }
   }
 }
-
-module.exports = loggerFactory
